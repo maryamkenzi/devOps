@@ -12,7 +12,6 @@ services:
       - APP_URL=http://localhost:8000
     volumes:
       - .:/var/www/html
-      - ./storage:/var/www/html/storage
     networks:
       - akaunting_network
 

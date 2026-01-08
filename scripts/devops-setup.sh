@@ -1,43 +1,41 @@
 #!/bin/bash
 
-# سكربت إعداد DevOps للتشغيل المحلي
+# DevOps Local Setup Script for Akaunting
 
-echo "🚀 إعداد بيئة Akaunting DevOps..."
+echo "Starting Akaunting DevOps Setup..."
 
-# التحقق من المتطلبات
-echo "🔍 التحقق من المتطلبات..."
-docker --version || { echo "❌ Docker غير مثبت"; exit 1; }
-docker-compose --version || { echo "❌ Docker Compose غير مثبت"; exit 1; }
-git --version || { echo "❌ Git غير مثبت"; exit 1; }
+# Check requirements
+echo "Checking requirements..."
+docker --version || { echo "ERROR: Docker not installed"; exit 1; }
+docker-compose --version || { echo "ERROR: Docker Compose not installed"; exit 1; }
 
-# بناء الصورة
-echo "🐳 بناء صورة Docker..."
+# Build Docker image
+echo "Building Docker image..."
 docker build -t akaunting-local .
 
-# تشغيل الحاويات
-echo "🚀 تشغيل الحاويات..."
+# Start containers
+echo "Starting containers..."
 docker-compose -f docker-compose.local.yml up -d
 
-# الانتظار للتأكد من التشغيل
-echo "⏳ انتظار بدء الخدمات..."
+# Wait for services
+echo "Waiting for services to start..."
 sleep 15
 
-# عرض الحالة
-echo "📊 حالة الخدمات:"
+# Check status
+echo "Service status:"
 docker-compose -f docker-compose.local.yml ps
 
-# عرض الروابط
+# Display URLs
 echo ""
-echo "🌐 روابط التطبيق:"
-echo "   التطبيق: http://localhost:8000"
-echo "   phpMyAdmin: http://localhost:8080"
-echo "   قاعدة البيانات: localhost:3306"
+echo "Application URLs:"
+echo "  App: http://localhost:8000"
+echo "  phpMyAdmin: http://localhost:8080"
+echo "  Database: localhost:3306"
 echo ""
-echo "🔧 معلومات الاتصال بقاعدة البيانات:"
-echo "   Host: db"
-echo "   Database: akaunting"
-echo "   Username: akaunting_user"
-echo "   Password: secret"
+echo "Database credentials:"
+echo "  Host: db"
+echo "  Database: akaunting"
+echo "  Username: akaunting_user"
+echo "  Password: secret"
 echo ""
-echo "✅ الإعداد مكتمل!"
-echo "💡 ملاحظة: AWS و Terraform موجودان للاستخدام المستقبلي"
+echo "Setup complete!"
