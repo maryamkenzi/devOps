@@ -2,59 +2,60 @@ version: '3.8'
 
 services:
   app:
-    image: akaunting-app:latest
-    restart: always
+    build: .
+    container_name: akaunting
     ports:
-      - "80:80"
+      - "8080:80"
     environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - APP_URL=${APP_URL}
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8080
       - DB_CONNECTION=mysql
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=akaunting
+      - DB_USERNAME=akaunting
+      - DB_PASSWORD=secret
     volumes:
+      - .:/var/www/html
       - ./storage:/var/www/html/storage
-      - ./bootstrap/cache:/var/www/html/bootstrap/cache
     depends_on:
       - db
     networks:
-      - akaunting_prod_network
+      - akaunting-network
 
   db:
     image: mysql:8.0
-    restart: always
+    container_name: akaunting-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=akaunting
+      - MYSQL_USER=akaunting
+      - MYSQL_PASSWORD=secret
+    ports:
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql/backup:/backup
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
     command: --default-authentication-plugin=mysql_native_password
     networks:
-      - akaunting_prod_network
+      - akaunting-network
 
-  nginx:
-    image: nginx:alpine
-    restart: always
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: akaunting-admin
     ports:
-      - "443:443"
-      - "80:80"
-    volumes:
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./docker/nginx/ssl:/etc/nginx/ssl
+      - "8081:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
     depends_on:
-      - app
+      - db
     networks:
-      - akaunting_prod_network
+      - akaunting-network
 
 networks:
-  akaunting_prod_network:
+  akaunting-network:
     driver: bridge
 
 volumes:

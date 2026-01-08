@@ -1,42 +1,65 @@
 #!/bin/bash
 
-# Deployment Script for Akaunting
+# Akaunting Deployment Script
 
-echo "Starting Akaunting Deployment..."
-echo "Date: $(date)"
+set -e
 
-# Requirements check
-command -v docker >/dev/null 2>&1 || { echo "ERROR: Docker not installed"; exit 1; }
-command -v docker-compose >/dev/null 2>&1 || { echo "ERROR: Docker Compose not installed"; exit 1; }
+echo "🚀 Starting Akaunting Deployment"
+echo "================================"
+date
 
-# Load environment variables
-if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+# Check requirements
+echo "🔍 Checking requirements..."
+php --version || { echo "❌ PHP not found"; exit 1; }
+composer --version || { echo "❌ Composer not found"; exit 1; }
+mysql --version || echo "⚠️  MySQL not found (database might be remote)"
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+composer install --no-dev --optimize-autoloader
+
+# Set permissions
+echo "🔒 Setting permissions..."
+chmod -R 755 storage
+chmod -R 755 bootstrap/cache
+
+# Setup environment
+if [ ! -f ".env" ]; then
+    echo "⚙️  Creating .env file..."
+    cp .env.example .env
+    php artisan key:generate
+    echo "✅ Please edit .env with your database credentials"
 else
-    echo "WARNING: .env file not found"
+    echo "✅ .env file already exists"
 fi
 
-# Pull latest image
-echo "Pulling latest image..."
-docker pull akaunting-app:latest
-
-# Stop old containers
-echo "Stopping old containers..."
-docker-compose -f docker-compose.prod.yml down
-
-# Start new containers
-echo "Starting new containers..."
-docker-compose -f docker-compose.prod.yml up -d
-
-# Health check
-echo "Performing health check..."
-sleep 10
-
-if curl -f http://localhost > /dev/null 2>&1; then
-    echo "SUCCESS: Application is running"
-    echo "URL: http://localhost"
-else
-    echo "WARNING: Application might not be accessible"
+# Database setup
+echo "🗄️  Setting up database..."
+read -p "Run database migrations? (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    php artisan migrate --force
+    echo "✅ Database migrations completed"
 fi
 
-echo "Deployment complete!"
+# Cache clear
+echo "🧹 Clearing cache..."
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+echo ""
+echo "🎉 Akaunting deployment completed!"
+echo ""
+echo "📋 Next steps:"
+echo "1. Configure your web server (Apache/Nginx)"
+echo "2. Set up SSL certificate"
+echo "3. Configure cron jobs for scheduled tasks"
+echo "4. Set up backups"
+echo ""
+echo "🌐 Access your Akaunting installation at:"
+echo "   http://your-domain"
+echo ""
+echo "🔧 Admin credentials:"
+echo "   Email: admin@example.com"
+echo "   Password: admin"
