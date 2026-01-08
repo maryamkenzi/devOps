@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: akaunting_app
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8000
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    networks:
+      - akaunting_network
+
+  db:
+    image: mysql:8.0
+    container_name: akaunting_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=akaunting
+      - MYSQL_USER=akaunting_user
+      - MYSQL_PASSWORD=secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - akaunting_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: akaunting_phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    depends_on:
+      - db
+    networks:
+      - akaunting_network
+
+networks:
+  akaunting_network:
+    driver: bridge
+
+volumes:
+  mysql_data:

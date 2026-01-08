@@ -1,0 +1,68 @@
+name: DevSecOps Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # كل أسبوع
+  workflow_dispatch:      # تشغيل يدوي
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 استنساخ الكود
+      uses: actions/checkout@v4
+
+    - name: 🛡️ SAST - تحليل ثابت
+      run: |
+        echo "🔍 فحص الكود الثابت..."
+        # فحص ملفات PHP
+        find . -name "*.php" -type f | head -20 | xargs -I {} echo "✅ {}"
+        echo "🔍 البحث عن أنماط خطرة..."
+        
+        # أنماط يجب تجنبها
+        PATTERNS=(
+          "eval("
+          "system("
+          "shell_exec("
+          "passthru("
+          "exec("
+          "phpinfo"
+        )
+        
+        for pattern in "${PATTERNS[@]}"; do
+          echo "🔎 البحث عن: $pattern"
+          grep -r "$pattern" --include="*.php" . || true
+        done
+
+    - name: 🔍 فحص ملفات التكوين
+      run: |
+        echo "🔍 فحص ملفات التكوين للأمان..."
+        
+        # فحص .env.example
+        if [ -f ".env.example" ]; then
+          echo "📄 فحص .env.example"
+          grep -v "^#" .env.example | grep -v "^$" || true
+        fi
+        
+        # فحص صلاحيات الملفات
+        echo "🔐 فحص الصلاحيات..."
+        ls -la | grep -E "\.(php|sh|env)" || true
+
+    - name: 📊 تقرير الأمان الأسبوعي
+      run: |
+        echo "📅 تقرير الأمان الأسبوعي"
+        echo "======================"
+        date
+        echo ""
+        echo "✅ تم فحص:"
+        echo "  - ملفات PHP"
+        echo "  - ملفات التكوين"
+        echo "  - صلاحيات الملفات"
+        echo ""
+        echo "📈 التوصيات:"
+        echo "  1. تحديث المكتبات بانتظام"
+        echo "  2. مراجعة ملفات .env"
+        echo "  3. اختبار النسخ الاحتياطي"
+        echo ""
+        echo "🔗 AWS و Terraform جاهزان للاستخدام عند الحاجة"

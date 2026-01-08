@@ -1,16 +1,30 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Livewire\Livewire;
+use App\Http\Controllers\Auth\CustomRegisterController;
 
-/**
- * 'web' middleware applied to all routes
- *
- * @see \App\Providers\Route::mapWebRoutes
- */
+/*
+|--------------------------------------------------------------------------
+| Custom Routes (DevOps Project)
+|--------------------------------------------------------------------------
+*/
 
- Livewire::setScriptRoute(function ($handle) {
-    $base = request()->getBasePath();
+// Page Index personnalisée
+Route::get('/index-custom', function () {
+    return view('index_custom');
+})->name('index.custom');
 
-    return Route::get($base . '/vendor/livewire/livewire/dist/livewire.min.js', $handle);
-});
+// Page Register personnalisée (GET)
+Route::get('/register-custom', [CustomRegisterController::class, 'showRegistrationForm'])
+    ->name('register.custom');
+
+// Submit Register (POST)
+Route::post('/register-custom', [CustomRegisterController::class, 'register'])
+    ->name('register.custom.submit');
+
+/*
+|--------------------------------------------------------------------------
+| Original Akaunting Installer Routes (NE PAS TOUCHER)
+|--------------------------------------------------------------------------
+*/
+Route::get('/install', 'Install\Requirements@show');

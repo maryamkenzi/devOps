@@ -95,3 +95,10 @@ modules/*
 !modules/.gitkeep
 .laravelstatsrc
 .DS_Store
+.env
+/vendor
+/node_modules
+/storage/*.key
+/storage/logs
+/bootstrap/cache
+
